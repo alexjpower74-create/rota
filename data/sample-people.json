@@ -1,0 +1,15 @@
+{
+  "note": "Made-up people, one per role, so demos and tests have a full band. Names start with SAMPLE on purpose. No phones, no tokens.",
+  "people": [
+    { "id": "sample-lg", "name": "SAMPLE Lead Guitar", "roles": ["lead guitar"], "phone": "", "sample": true },
+    { "id": "sample-rg", "name": "SAMPLE Rhythm Guitar", "roles": ["rhythm guitar"], "phone": "", "sample": true },
+    { "id": "sample-ba", "name": "SAMPLE Bass", "roles": ["bass"], "phone": "", "sample": true },
+    { "id": "sample-dr", "name": "SAMPLE Drums", "roles": ["drums"], "phone": "", "sample": true },
+    { "id": "sample-ke", "name": "SAMPLE Keys", "roles": ["keys"], "phone": "", "sample": true },
+    { "id": "sample-v1", "name": "SAMPLE Vocals One", "roles": ["vocals 1", "vocals 2", "vocals 3"], "phone": "", "sample": true },
+    { "id": "sample-v2", "name": "SAMPLE Vocals Two", "roles": ["vocals 1", "vocals 2", "vocals 3"], "phone": "", "sample": true },
+    { "id": "sample-v3", "name": "SAMPLE Vocals Three", "roles": ["vocals 1", "vocals 2", "vocals 3"], "phone": "", "sample": true },
+    { "id": "sample-so", "name": "SAMPLE Sound", "roles": ["sound"], "phone": "", "sample": true },
+    { "id": "sample-pr", "name": "SAMPLE Projection", "roles": ["projection"], "phone": "", "sample": true }
+  ]
+}
