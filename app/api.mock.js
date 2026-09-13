@@ -145,6 +145,7 @@ export function createMockApi() {
       for (const k of ['title', 'artist', 'key', 'bpm', 'chart', 'video', 'notes']) if (b[k] !== undefined) s[k] = b[k]
       s.rev++; save(); return { ...s }
     }],
+    ['DELETE', /^\/songs\/([^/]+)$/, (m) => { leaderOnly(who()); const i = db.songs.findIndex(x => x.id === m[1]); if (i < 0) fail(404, "That song isn't in the list."); db.songs.splice(i, 1); for (const s of db.services) s.set = s.set.filter(e => e.song_id !== m[1]); save(); return { ok: true } }],
     ['PUT', /^\/services\/([^/]+)\/set$/, (m, b) => {
       leaderOnly(who()); const s = findService(m[1]); checkRev(s, b.rev, serviceView)
       if (!Array.isArray(b.entries)) fail(400, 'Send the set list as a list.')

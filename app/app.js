@@ -136,6 +136,10 @@ function renderBadLink(e) {
   $app.replaceChildren(h('section', { class: 'card' }, h('h1', {}, "That link didn't work"), h('p', {}, e instanceof ApiError ? e.message : 'Something went wrong. Try again.'), h('p', {}, h('a', { href: '#/' }, "See who's on next Sunday"))))
 }
 
+// Which leader panels are open, so a save (which re-renders the page) doesn't fold them shut.
+const openPanels = new Set()
+function panel(key, ...children) { return h('details', { class: 'card', open: openPanels.has(key), ontoggle: (ev) => { if (ev.currentTarget.open) openPanels.add(key); else openPanels.delete(key) } }, ...children) }
+
 // ---------- leader ----------
 async function renderLeader(token) {
   api.setToken(token); remember(token, 'lead')
@@ -235,6 +239,41 @@ async function renderLeader(token) {
       h('div', { class: 'field-row', style: 'margin-top:8px' }, date, time), kind, title, h('div', { class: 'btn-row' }, btn))
   }
 
+  // One song in the list: the facts, plus Edit → the same fields filled in, Save / Remove / Cancel.
+  function songRow(sg) {
+    const li = h('li', { 'data-song': sg.id })
+    const view = () => {
+      const editBtn = h('button', { class: 'btn small', 'aria-label': `Edit ${sg.title}`, onclick: () => li.replaceChildren(form()) }, 'Edit')
+      return h('div', { style: 'display:flex;justify-content:space-between;gap:8px;align-items:flex-start' },
+        h('div', {}, h('strong', {}, sg.title), ' ', h('span', { class: 'muted' }, sg.artist), h('div', { class: 'small muted' }, [sg.key && `Key ${sg.key}`, sg.bpm && `${sg.bpm} BPM`, sg.last_used && `last used ${fmtDate(sg.last_used, { day: 'numeric', month: 'short' })}`].filter(Boolean).join(' · '), ' ',
+          sg.chart ? h('a', { href: sg.chart, target: '_blank', rel: 'noopener' }, 'Chart') : null, ' ', sg.video ? h('a', { href: sg.video, target: '_blank', rel: 'noopener' }, 'Video') : null)),
+        editBtn)
+    }
+    const form = () => {
+      const f = { title: h('input', { type: 'text', value: sg.title, 'aria-label': 'Song title' }), artist: h('input', { type: 'text', value: sg.artist || '', placeholder: 'Artist', 'aria-label': 'Artist' }),
+        key: h('select', { 'aria-label': 'Key' }, h('option', { value: '' }, 'Key'), KEYS.map(k => h('option', { value: k, selected: k === sg.key }, k))), bpm: h('input', { type: 'number', value: sg.bpm || '', placeholder: 'BPM', 'aria-label': 'BPM', min: 30, max: 300 }),
+        chart: h('input', { type: 'url', value: sg.chart || '', placeholder: 'Chart link', 'aria-label': 'Chart link' }), video: h('input', { type: 'url', value: sg.video || '', placeholder: 'Video link', 'aria-label': 'Video link' }) }
+      if (sg.key) f.key.value = sg.key
+      const save = h('button', { class: 'btn primary', onclick: async () => {
+        if (!f.title.value.trim()) { toast('Give the song a title.', 'bad'); f.title.focus(); return }
+        busy(save, true)
+        try { await api.patch(`/songs/${sg.id}`, { rev: sg.rev, title: f.title.value.trim(), artist: f.artist.value, key: f.key.value, bpm: f.bpm.value ? +f.bpm.value : null, chart: f.chart.value, video: f.video.value }); saySaved('Saved'); await refresh(); return } catch (e) { sayError(e); if (e instanceof ApiError && e.status === 409) { await refresh(); return } }
+        busy(save, false)
+      } }, 'Save')
+      // Two taps to remove, no browser dialog (those hang automation and some phones' web views).
+      const remove = h('button', { class: 'btn danger', onclick: async () => {
+        if (!remove.dataset.armed) { remove.dataset.armed = '1'; remove.textContent = 'Tap again to remove'; return }
+        busy(remove, true)
+        try { await api.del(`/songs/${sg.id}`); saySaved('Removed'); await refresh(); return } catch (e) { sayError(e) }
+        busy(remove, false)
+      } }, 'Remove')
+      const cancel = h('button', { class: 'btn', onclick: () => li.replaceChildren(view()) }, 'Cancel')
+      return h('div', { class: 'song-edit' }, h('div', { class: 'field-row' }, f.title, f.artist), h('div', { class: 'field-row' }, f.key, f.bpm), h('div', { class: 'field-row' }, f.chart, f.video), h('div', { class: 'btn-row' }, save, cancel, remove))
+    }
+    li.replaceChildren(view())
+    return li
+  }
+
   function songsCard() {
     const f = { title: h('input', { type: 'text', placeholder: 'Title', 'aria-label': 'Song title' }), artist: h('input', { type: 'text', placeholder: 'Artist', 'aria-label': 'Artist' }),
       key: h('select', { 'aria-label': 'Key' }, h('option', { value: '' }, 'Key'), KEYS.map(k => h('option', { value: k }, k))), bpm: h('input', { type: 'number', placeholder: 'BPM', 'aria-label': 'BPM', min: 30, max: 300 }),
@@ -245,9 +284,8 @@ async function renderLeader(token) {
       try { await api.post('/songs', { title: f.title.value.trim(), artist: f.artist.value, key: f.key.value, bpm: f.bpm.value ? +f.bpm.value : null, chart: f.chart.value, video: f.video.value }); saySaved('Saved — song added'); await refresh(); return } catch (e) { sayError(e) }
       busy(btn, false)
     } }, 'Add song')
-    return h('details', { class: 'card' }, h('summary', { style: 'cursor:pointer;font-weight:600;min-height:32px' }, `Songs (${songs.length})`),
-      h('ul', { class: 'list' }, songs.map(sg => h('li', {}, h('div', {}, h('strong', {}, sg.title), ' ', h('span', { class: 'muted' }, sg.artist), h('div', { class: 'small muted' }, [sg.key && `Key ${sg.key}`, sg.bpm && `${sg.bpm} BPM`, sg.last_used && `last used ${fmtDate(sg.last_used, { day: 'numeric', month: 'short' })}`].filter(Boolean).join(' · '), ' ',
-        sg.chart ? h('a', { href: sg.chart, target: '_blank', rel: 'noopener' }, 'Chart') : null, ' ', sg.video ? h('a', { href: sg.video, target: '_blank', rel: 'noopener' }, 'Video') : null))))),
+    return panel('songs', h('summary', { style: 'cursor:pointer;font-weight:600;min-height:32px' }, `Songs (${songs.length})`),
+      h('ul', { class: 'list' }, songs.map(sg => songRow(sg))),
       h('h3', { style: 'margin-top:16px' }, 'Add a song'), h('div', { class: 'field-row' }, f.title, f.artist), h('div', { class: 'field-row' }, f.key, f.bpm), h('div', { class: 'field-row' }, f.chart, f.video), h('div', { class: 'btn-row' }, btn))
   }
 
@@ -263,7 +301,7 @@ async function renderLeader(token) {
       busy(btn, false)
     } }, 'Add to the team')
     const linkFor = (p) => `${location.origin}${location.pathname}${location.search}#/me/${p.token}`
-    return h('details', { class: 'card' }, h('summary', { style: 'cursor:pointer;font-weight:600;min-height:32px' }, `Team (${people.length}) and their personal links`),
+    return panel('team', h('summary', { style: 'cursor:pointer;font-weight:600;min-height:32px' }, `Team (${people.length}) and their personal links`),
       h('ul', { class: 'list' }, people.map(p => h('li', {}, h('div', {}, h('strong', {}, p.name), h('div', { class: 'small muted' }, p.roles.join(', ') || 'no role yet', p.phone ? ' · ' + p.phone : '')),
         h('div', { class: 'btn-row' }, p.token ? h('button', { class: 'btn small', onclick: async (ev) => { try { await navigator.clipboard.writeText(linkFor(p)); toast('Link copied — send it to ' + p.name.split(' ')[0], 'good') } catch { prompt('Copy this link', linkFor(p)) } } }, 'Copy link') : null,
           h('button', { class: 'btn small danger', onclick: async () => { if (!confirm(`Remove ${p.name} from the team? Their slots will be left open.`)) return; try { await api.del(`/people/${p.id}`); saySaved('Saved — removed'); await refresh() } catch (e) { sayError(e) } } }, 'Remove'))))),
