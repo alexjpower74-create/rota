@@ -5,3 +5,4 @@ test-results/
 */SECRETS.txt
 .dev.vars
 data/cache/
+worker/SECRETS.local.txt

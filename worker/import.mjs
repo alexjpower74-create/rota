@@ -68,6 +68,7 @@ for (const i of snap.issues || []) {
 }
 
 process.stdout.write(out.join('\n') + '\n')
-const secretsPath = join(dirname(fileURLToPath(import.meta.url)), 'SECRETS.txt')
+// SECRETS.txt is the LIVE links file. Local runs (tests) must not overwrite it: set ROTA_SECRETS to another path.
+const secretsPath = process.env.ROTA_SECRETS || join(dirname(fileURLToPath(import.meta.url)), 'SECRETS.txt')
 writeFileSync(secretsPath, secrets.join('\n') + '\n')
 console.error(`wrote ${out.length - 1} rows; personal links in ${secretsPath}`)

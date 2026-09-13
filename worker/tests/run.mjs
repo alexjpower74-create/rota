@@ -10,10 +10,11 @@ const sh = (cmd, quiet = false) => execSync(cmd, { cwd: root, stdio: quiet ? ['i
 
 rmSync(join(root, '.wrangler', 'state'), { recursive: true, force: true })
 sh('npx wrangler d1 migrations apply rota --local')
+process.env.ROTA_SECRETS = join(root, 'SECRETS.local.txt') // the local database's links, never the live file
 sh('node import.mjs ../data/spc-state-2026-09-13.json > seed.sql')
 sh('npx wrangler d1 execute rota --local --file seed.sql', true)
 
-const leaderLine = readFileSync(join(root, 'SECRETS.txt'), 'utf8').split('\n').find(l => l.includes('(leader)'))
+const leaderLine = readFileSync(join(root, 'SECRETS.local.txt'), 'utf8').split('\n').find(l => l.includes('(leader)'))
 const LEADER = leaderLine.split('/#/lead/')[1].trim()
 
 const dev = spawn('npx', ['wrangler', 'dev', '--port', PORT], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] })
