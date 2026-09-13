@@ -96,7 +96,7 @@ textarea { min-height: 90px; resize: vertical; }
 .people .tag { font-size: .85rem; color: var(--danger); font-weight: 600; }
 .people .tag.on { color: var(--ok); }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 10px; z-index: 30; max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0,0,0,.2); }
+.toast { position: fixed; left: 50%; top: 12px; pointer-events: none; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 10px; z-index: 30; max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0,0,0,.2); }
 .toast.bad { background: var(--danger); }
 .toast.good { background: var(--ok); }
 

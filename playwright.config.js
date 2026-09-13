@@ -12,7 +12,7 @@ const desktop = { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 }
 export default defineConfig({
   testDir: '.',
   testMatch: /.*\.spec\.js$/,
-  testIgnore: ['**/node_modules/**', '**/worker/**', '**/test-results/**'],
+  testIgnore: ['**/.worktrees/**', '**/node_modules/**', '**/worker/**', '**/test-results/**'],
   outputDir: 'test-results/runs',
   fullyParallel: false,
   workers: 1,

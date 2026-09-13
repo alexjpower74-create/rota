@@ -91,7 +91,7 @@ async function renderMember(token) {
   }
 
   const frag = []
-  frag.push(h('h1', {}, `Hello ${me.name.split(' ')[0]}`))
+  frag.push(h('h1', {}, `Hello ${me.name}`))
   if (!next) frag.push(nextCard(null))
   else {
     const isAway = away.has(next.date)
@@ -102,7 +102,7 @@ async function renderMember(token) {
       h('p', { class: 'sub' }, serviceLine(next)),
       isAway ? h('p', { class: 'away-note', 'data-testid': 'away-note' }, "You're away that day.") : h('p', { 'data-testid': 'your-part' }, role ? `You're on ${role}.` : "You're not on for this one."),
       h('button', { class: 'btn big ' + (isAway ? 'away-on' : 'primary'), 'data-testid': 'away-toggle', 'aria-pressed': isAway ? 'true' : 'false', onclick: (ev) => toggleAway(next, ev.currentTarget) },
-        isAway ? "I can do that day after all" : "I'm away that day"),
+        isAway ? "You're away that day. Tap if you can make it after all" : "I'm away that day"),
       next.notes ? h('p', { class: 'small', style: 'margin-top:12px' }, next.notes) : null,
       h('h3', { style: 'margin-top:16px' }, "Who's on"), whoRows(next, me.id),
       h('h3', {}, 'Set list'), setRows(next, true)))

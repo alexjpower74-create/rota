@@ -92,6 +92,8 @@ function checkRev(row, rev, view) { if (rev !== undefined && rev !== null && rev
 
 export function createMockApi() {
   let token = null
+  // Hook for the QA harness (r4, docs/QA.md): who exists in the mock and how to sign in as them. SAMPLE people only.
+  if (typeof window !== 'undefined') { const d = load(); window.rotaMock = { leaderToken: LEADER_TOKEN, people: d.people.map(p => ({ id: p.id, name: p.name, roles: p.roles, token: p.token })) } }
   const who = () => token === LEADER_TOKEN ? { leader: true } : (token ? db.people.find(p => p.token === token) : null)
   const need = (w) => { if (!w) fail(401, 'That link is not a Rota link. Ask the leader for yours.') ; return w }
   const leaderOnly = (w) => { if (!(w && w.leader)) fail(403, 'Only the leader can change that.'); }

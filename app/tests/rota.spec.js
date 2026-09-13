@@ -11,7 +11,7 @@ test.describe('Rota against the mock', () => {
     await expect(page.getByTestId('away-note')).toHaveCount(0)
     await expectToast(page, 'Saved', () => tap(page, btn))
     await expect(page.getByTestId('away-note')).toHaveText("You're away that day.")
-    await expect(page.getByTestId('away-toggle')).toHaveText('I can do that day after all')
+    await expect(page.getByTestId('away-toggle')).toHaveText("You're away that day. Tap if you can make it after all")
     await page.reload()
     await expect(page.getByTestId('away-note')).toHaveText("You're away that day.")
     // and back again
