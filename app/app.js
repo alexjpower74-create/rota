@@ -368,12 +368,19 @@ async function renderSound(token) {
   try { [ch, notes] = await Promise.all([api.get('/channels'), api.get('/desk')]) } catch (e) { return renderBadLink(e) }
   $app.classList.add('wide')
   const rows = ch.channels.map(c => ({ ...c }))
+  // Every cell is free text. Enter on any cell adds the next channel; Remove takes a row out and renumbers.
+  const INPUT_PICKS = ['Mic', 'DI', 'Line', 'Wireless', 'XLR', 'Stereo pair']
+  const renumber = () => rows.forEach((c, i) => { c.ch = i + 1 })
+  const addAfter = (i) => { rows.splice(i + 1, 0, { ch: 0, src: '', inp: '', note: '' }); renumber(); renderTable(); const next = table.querySelectorAll('tbody tr')[i + 1]; next && next.querySelector('input') && next.querySelector('input').focus() }
+  const onEnter = (i) => (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); addAfter(i) } }
   const inputsFor = (c, i) => canEdit
-    ? [h('td', {}, h('input', { type: 'text', value: c.src, 'aria-label': `Channel ${c.ch} source`, oninput: (ev) => { c.src = ev.target.value } })),
-       h('td', {}, h('input', { type: 'text', class: 'w-inp', value: c.inp, 'aria-label': `Channel ${c.ch} input`, oninput: (ev) => { c.inp = ev.target.value } })),
-       h('td', {}, h('input', { type: 'text', value: c.note, 'aria-label': `Channel ${c.ch} note`, oninput: (ev) => { c.note = ev.target.value } }))]
-    : [h('td', {}, c.src), h('td', { class: 'muted' }, c.inp), h('td', { class: 'muted' }, c.note)]
-  const table = h('table', { class: 'channels' }, h('thead', {}, h('tr', {}, h('th', {}, '#'), h('th', {}, 'Source'), h('th', {}, 'Input'), h('th', {}, 'Note'))),
+    ? [h('td', {}, h('input', { type: 'text', value: c.src, placeholder: 'e.g. Acoustic 2', 'aria-label': `Channel ${c.ch} source`, oninput: (ev) => { c.src = ev.target.value }, onkeydown: onEnter(i) })),
+       h('td', {}, h('input', { type: 'text', class: 'w-inp', list: 'input-picks', value: c.inp, placeholder: 'Mic / DI', 'aria-label': `Channel ${c.ch} input`, oninput: (ev) => { c.inp = ev.target.value }, onkeydown: onEnter(i) })),
+       h('td', {}, h('input', { type: 'text', value: c.note, 'aria-label': `Channel ${c.ch} note`, oninput: (ev) => { c.note = ev.target.value }, onkeydown: onEnter(i) })),
+       h('td', {}, h('button', { class: 'btn small danger', 'aria-label': `Remove channel ${c.ch}`, onclick: () => { rows.splice(i, 1); renumber(); renderTable() } }, 'Remove'))]
+    : [h('td', {}, c.src), h('td', { class: 'muted' }, c.inp), h('td', { class: 'muted' }, c.note), null]
+  const picks = h('datalist', { id: 'input-picks' }, INPUT_PICKS.map(v => h('option', { value: v })))
+  const table = h('table', { class: 'channels' }, h('thead', {}, h('tr', {}, h('th', {}, '#'), h('th', {}, 'Source'), h('th', {}, 'Input'), h('th', {}, 'Note'), canEdit ? h('th', {}, '') : null)),
     h('tbody', {}, rows.map((c, i) => h('tr', { 'data-ch': c.ch }, h('td', { class: 'n' }, c.ch), ...inputsFor(c, i)))))
   const saveBtn = canEdit ? h('button', { class: 'btn primary', onclick: async () => {
     busy(saveBtn, true)
@@ -381,7 +388,7 @@ async function renderSound(token) {
     try { await api.put('/channels', { rev: ch.rev, channels: rows }); ok = true } catch (e) { sayError(e) }
     await renderSound(token); if (ok) saySaved()
   } }, 'Save channels') : null
-  const addBtn = canEdit ? h('button', { class: 'btn', onclick: () => { rows.push({ ch: rows.length + 1, src: '', inp: '', note: '' }); renderTable() } }, 'Add a channel') : null
+  const addBtn = canEdit ? h('button', { class: 'btn', onclick: () => addAfter(rows.length - 1) }, 'Add a channel') : null
   function renderTable() { const nb = table.querySelector('tbody'); nb.replaceChildren(...rows.map((c, i) => h('tr', { 'data-ch': c.ch }, h('td', { class: 'n' }, c.ch), ...inputsFor(c, i)))) }
 
   const noteList = h('ul', { class: 'list notes', 'data-testid': 'desk-notes' }, notes.length ? notes.map(n => h('li', { 'data-note': n.id },
@@ -392,8 +399,8 @@ async function renderSound(token) {
     h('h1', {}, 'Sound desk'),
     h('div', { class: 'grid' },
       h('section', { class: 'card' }, h('h2', {}, 'Channels'),
-        canEdit ? h('p', { class: 'muted small' }, 'Change anything, then tap Save.') : h('p', { class: 'muted small' }, token ? 'Only the sound team or the leader can change the channel list.' : 'Open your personal link first if you need to change the channel list.'),
-        h('div', { style: 'overflow-x:auto' }, table), h('div', { class: 'btn-row' }, saveBtn, addBtn)),
+        canEdit ? h('p', { class: 'muted small' }, 'Change anything: type over a source or input, Enter adds the next channel, Remove takes one out. Then tap Save.') : h('p', { class: 'muted small' }, token ? 'Only the sound team or the leader can change the channel list.' : 'Open your personal link first if you need to change the channel list.'),
+        h('div', { style: 'overflow-x:auto' }, picks, table), h('div', { class: 'btn-row' }, saveBtn, addBtn)),
       h('section', { class: 'card' }, h('h2', {}, 'Desk notes'), h('p', { class: 'muted small' }, 'Things to fix or remember, from anyone on the team.'), noteList,
         token ? deskNoteBox() : h('p', { class: 'muted' }, 'Open your personal link to leave a note.'))))
 }

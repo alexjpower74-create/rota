@@ -190,4 +190,28 @@ test.describe('Rota against the mock', () => {
     await page.locator('[data-service]').first().getByText(/Recent changes/).click()
     await expect(page.locator('[data-service]').first()).toContainText('SAMPLE Pastor Jane (pastor) put SAMPLE Dan on drums')
   })
+
+  test('sound desk: add a channel with Enter, remove one, the numbers stay in order and it saves', async ({ page }) => {
+    await open(page, `/me/${TOM}`, { reset: true })
+    await page.goto(page.url().replace(/#.*/, '#/sound'))
+    await expect(page.locator('table.channels tbody tr')).toHaveCount(16)
+    // Enter on the last channel's source adds channel 17
+    const last = page.locator('table.channels tbody tr').last().locator('input').first()
+    await last.click(); await page.keyboard.press('Enter')
+    await expect(page.locator('table.channels tbody tr')).toHaveCount(17)
+    await page.locator('table.channels tbody tr').last().locator('input').first().fill('Acoustic 2')
+    await page.locator('table.channels tbody tr').last().locator('input').nth(1).fill('DI')
+    // remove channel 3; the rest renumber
+    await page.getByRole('button', { name: 'Remove channel 3' }).click()
+    await expect(page.locator('table.channels tbody tr')).toHaveCount(16)
+    await expect(page.locator('table.channels tbody tr').nth(2).locator('td.n')).toHaveText('3')
+    await expect(page.locator('table.channels tbody tr').last().locator('td.n')).toHaveText('16')
+    await expectToast(page, 'Saved', () => tap(page, page.getByRole('button', { name: 'Save channels' })))
+    await page.reload()
+    await expect(page.locator('table.channels tbody tr')).toHaveCount(16)
+    // the sound person sees inputs, so read the values, not the text
+    const values = await page.locator('table.channels tbody input[aria-label$="source"]').evaluateAll(els => els.map(e => e.value))
+    expect(values).toContain('Acoustic 2')
+    expect(values).not.toContain('Hi-Hat')
+  })
 })
