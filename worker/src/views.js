@@ -61,5 +61,5 @@ export async function bumpRev (db, id) {
 }
 
 export function publicPerson (p) {
-  return { id: p.id, name: p.name, roles: typeof p.roles === 'string' ? JSON.parse(p.roles) : p.roles }
+  return { id: p.id, name: p.name, roles: typeof p.roles === 'string' ? JSON.parse(p.roles) : p.roles, is_leader: p.is_leader === 1, title: p.title || '' }
 }

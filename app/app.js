@@ -362,7 +362,7 @@ async function renderSound(token) {
   api.setToken(token)
   let canEdit = false, whoAmI = null
   if (token) {
-    try { const me = await api.get('/me'); whoAmI = me.person; canEdit = me.person.roles.includes('sound') } catch (e) { if (e.status === 403) canEdit = true; else if (e.status === 401) { token = null; api.setToken(null) } }
+    try { const me = await api.get('/me'); whoAmI = me.person; canEdit = me.person.roles.includes('sound') || me.person.is_leader === true || me.person.is_leader === 1 || rememberedKind() === 'lead' } catch (e) { if (e.status === 403) canEdit = true; else if (e.status === 401) { token = null; api.setToken(null) } }
   }
   let ch, notes
   try { [ch, notes] = await Promise.all([api.get('/channels'), api.get('/desk')]) } catch (e) { return renderBadLink(e) }
