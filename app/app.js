@@ -140,14 +140,55 @@ function renderBadLink(e) {
 const openPanels = new Set()
 function panel(key, ...children) { return h('details', { class: 'card', open: openPanels.has(key), ontoggle: (ev) => { if (ev.currentTarget.open) openPanels.add(key); else openPanels.delete(key) } }, ...children) }
 
+// ---------- who is building the rota ----------
+function editor() { try { return JSON.parse(localStorage.getItem('rotaEditor') || 'null') } catch { return null } }
+function setEditor(e) { try { if (e) localStorage.setItem('rotaEditor', JSON.stringify(e)); else localStorage.removeItem('rotaEditor') } catch {} }
+const TITLE_WORDS = { 'worship leader': 'Worship leader', pastor: 'Pastor' }
+function fmtWhen(iso) { const d = new Date(iso); return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' }) }
+
+// "Are you a worship leader or a pastor?" then pick or add your name. Remembered on this phone; changeable from the top of the page.
+async function renderWhoAreYou(onDone) {
+  let editors = []
+  try { editors = await api.get('/editors') } catch (e) { sayError(e) }
+  let title = null
+  const box = h('section', { class: 'card', 'data-testid': 'who-are-you' })
+  const step1 = () => box.replaceChildren(
+    h('h1', {}, 'Before you build the rota'),
+    h('p', { class: 'lead' }, 'Are you a worship leader or a pastor?'),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn primary big', onclick: () => { title = 'worship leader'; step2() } }, 'Worship leader'),
+      h('button', { class: 'btn primary big', onclick: () => { title = 'pastor'; step2() } }, 'Pastor')))
+  const step2 = () => {
+    const mine = editors.filter(e => e.title === title)
+    const name = h('input', { type: 'text', placeholder: 'Your name', 'aria-label': 'Your name' })
+    const add = h('button', { class: 'btn primary', onclick: async () => {
+      if (!name.value.trim()) { toast('Type your name.', 'bad'); name.focus(); return }
+      busy(add, true)
+      try { const e = await api.post('/editors', { name: name.value.trim(), title }); setEditor(e); saySaved(`Welcome, ${e.name}`); onDone(); return } catch (e) { sayError(e) }
+      busy(add, false)
+    } }, 'Add my name')
+    box.replaceChildren(
+      h('h1', {}, TITLE_WORDS[title] + ': who are you?'),
+      mine.length ? h('p', { class: 'lead' }, 'Tap your name.') : h('p', { class: 'lead' }, `No ${title}s are listed yet. Add your name below.`),
+      h('div', { class: 'chips', role: 'listbox', 'aria-label': 'Pick your name' }, mine.map(e => h('button', { class: 'chip', role: 'option', onclick: () => { setEditor(e); onDone() } }, e.name))),
+      h('h3', { style: 'margin-top:16px' }, mine.length ? "Not there? Add your name" : 'Add your name'),
+      h('div', { class: 'field-row' }, name, add),
+      h('p', {}, h('button', { class: 'btn small', onclick: step1 }, 'Back')))
+  }
+  step1()
+  $app.replaceChildren(box)
+}
+
 // ---------- leader ----------
 async function renderLeader(token) {
   api.setToken(token); remember(token, 'lead')
+  if (!editor()) return renderWhoAreYou(() => renderLeader(token))
   let services, people, songs
   try { [services, people, songs] = await Promise.all([api.get('/services?limit=4'), api.get('/people'), api.get('/songs')]) } catch (e) { return renderBadLink(e) }
   $app.classList.add('wide')
 
-  const frag = [h('h1', {}, 'Build the rota')]
+  const ed = editor()
+  const frag = [h('h1', {}, 'Build the rota'), h('p', { class: 'small muted', 'data-testid': 'editing-as' }, `Editing as ${ed.name} (${ed.title}). `, h('button', { class: 'btn small', onclick: () => { setEditor(null); renderLeader(token) } }, 'Not you?'))]
   frag.push(addServiceCard())
   frag.push(h('div', { class: 'grid' }, services.map(s => serviceCard(s))))
   frag.push(songsCard())
@@ -157,11 +198,17 @@ async function renderLeader(token) {
   function refresh() { return renderLeader(token) }
 
   function serviceCard(s) {
+    const card = _serviceCard(s)
+    if (s.edits && s.edits.length) card.append(h('details', { class: 'edits' }, h('summary', { class: 'small muted' }, `Recent changes (${s.edits.length})`), h('ul', { class: 'small muted' }, s.edits.map(e => h('li', {}, `${e.by} (${e.title}) ${e.what}, ${fmtWhen(e.at)}`)))))
+    return card
+  }
+  function _serviceCard(s) {
     const card = h('section', { class: 'card', 'data-service': s.id, 'data-rev': s.rev },
       h('div', { class: 'kicker' }, KIND[s.kind] || s.kind),
       h('p', { class: 'when' }, fmtDate(s.date)),
       h('p', { class: 'sub' }, serviceLine(s)),
       s.away_names.length ? h('p', { class: 'small muted' }, 'Away that day: ' + s.away_names.join(', ')) : null,
+      s.last_edit ? h('p', { class: 'small muted', 'data-testid': 'last-edit' }, `Last change by ${s.last_edit.by} (${s.last_edit.title}), ${fmtWhen(s.last_edit.at)}`) : null,
       h('h3', {}, "Who's on — tap a slot to change it"),
       h('div', { class: 'chips' }, ROLES.map(r => {
         const slot = s.slots[r]

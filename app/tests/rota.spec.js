@@ -168,4 +168,26 @@ test.describe('Rota against the mock', () => {
     await expect(page.locator(`li[data-song="${id}"]`)).toHaveCount(0)
     await expect(page.locator('li[data-song]').filter({ hasText: title })).toHaveCount(0)
   })
+
+  test('building the rota asks who you are, and every change says who made it', async ({ page }) => {
+    await open(page, `/lead/${LEADER}`, { reset: true, editor: null })
+    await expect(page.getByText('Are you a worship leader or a pastor?')).toBeVisible()
+    await page.getByRole('button', { name: 'Worship leader' }).click()
+    await page.getByRole('option', { name: 'Alexander Power' }).click()
+    await expect(page.getByTestId('editing-as')).toContainText('Editing as Alexander Power (worship leader)')
+    // a pastor who is not on the team adds their name
+    await page.getByRole('button', { name: 'Not you?' }).click()
+    await page.getByRole('button', { name: 'Pastor' }).click()
+    await page.getByLabel('Your name', { exact: true }).fill('SAMPLE Pastor Jane')
+    await page.getByRole('button', { name: 'Add my name' }).click()
+    await expect(page.getByTestId('editing-as')).toContainText('Editing as SAMPLE Pastor Jane (pastor)')
+    // a change is stamped with that name
+    const card = page.locator('[data-service]').first()
+    await card.getByRole('button', { name: /^drums/ }).click()
+    await page.getByRole('dialog').getByRole('button', { name: /SAMPLE Dan/ }).click()
+    await expect(page.getByText(/^Saved/).first()).toBeVisible()
+    await expect(page.locator('[data-service]').first().getByTestId('last-edit')).toContainText('Last change by SAMPLE Pastor Jane (pastor)')
+    await page.locator('[data-service]').first().getByText(/Recent changes/).click()
+    await expect(page.locator('[data-service]').first()).toContainText('SAMPLE Pastor Jane (pastor) put SAMPLE Dan on drums')
+  })
 })

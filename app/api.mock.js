@@ -52,7 +52,7 @@ function seed() {
     services.push({ id: `gen-${d}`, date: d, time: '11:00', kind: 'am', title: '', notes: '', rev: 1, slots: Object.fromEntries(ROLES.map(r => [r, null])), set: [] })
   }
   const channels = snapshot.channels.map(c => ({ id: c.id, ch: c.ch, src: c.src, inp: c.inp, note: c.note || '' }))
-  return { people, songs, services, away: [], channels, channels_rev: 1, desk: [], seq: 1 }
+  return { people, songs, services, away: [], channels, channels_rev: 1, desk: [], edits: [], seq: 1 }
 }
 
 let db = null
@@ -83,7 +83,8 @@ function serviceView(s) {
     return { position: i + 1, song: { id: song.id, title: song.title, artist: song.artist, chart: song.chart, video: song.video, bpm: song.bpm }, key: e.key, lead_name: lead ? lead.name : null, note: e.note || '' }
   })
   const away_names = db.people.filter(p => isAway(p.id, s.date)).map(p => p.name)
-  return { id: s.id, date: s.date, time: s.time, kind: s.kind, title: s.title, notes: s.notes, rev: s.rev, slots, set, away_names }
+  const mine = (db.edits || []).filter(e => e.service_id === s.id).slice().reverse()
+  return { id: s.id, date: s.date, time: s.time, kind: s.kind, title: s.title, notes: s.notes, rev: s.rev, slots, set, away_names, last_edit: s.last_edit || null, edits: mine.slice(0, 5) }
 }
 function sorted() { return [...db.services].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)) }
 function upcoming(from, limit) { return sorted().filter(s => s.date >= from).slice(0, limit) }
@@ -92,6 +93,10 @@ function checkRev(row, rev, view) { if (rev !== undefined && rev !== null && rev
 
 export function createMockApi() {
   let token = null
+  let editorId = null
+  const TITLES = ['worship leader', 'pastor']
+  const editorNow = () => { try { editorId = JSON.parse(localStorage.getItem('rotaEditor') || 'null')?.id || null } catch {} ; const p = editorId && db.people.find(x => x.id === editorId); if (p && (p.title || p.id === 'p1')) return { id: p.id, name: p.name, title: p.title || 'worship leader' }; const a = db.people.find(x => x.id === 'p1'); return { id: a.id, name: a.name, title: a.title || 'worship leader' } }
+  const logEdit = (serviceId, what) => { const ed = editorNow(); const at = new Date().toISOString(); db.edits = db.edits || []; db.edits.push({ service_id: serviceId, what, by: ed.name, title: ed.title, at }); if (serviceId) { const s = db.services.find(x => x.id === serviceId); if (s) s.last_edit = { by: ed.name, title: ed.title, at } } }
   // Hook for the QA harness (r4, docs/QA.md): who exists in the mock and how to sign in as them. SAMPLE people only.
   if (typeof window !== 'undefined') { const d = load(); window.rotaMock = { leaderToken: LEADER_TOKEN, people: d.people.map(p => ({ id: p.id, name: p.name, roles: p.roles, token: p.token })) } }
   const who = () => token === LEADER_TOKEN ? { leader: true } : (token ? db.people.find(p => p.token === token) : null)
@@ -113,12 +118,12 @@ export function createMockApi() {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(b.date || '')) fail(400, 'Pick a date for the service.')
       if (!['am', 'pm', 'practice', 'special'].includes(b.kind)) fail(400, 'Pick what kind of service it is.')
       const s = { id: nid('svc'), date: b.date, time: b.time || '11:00', kind: b.kind, title: b.title || '', notes: '', rev: 1, slots: Object.fromEntries(ROLES.map(r => [r, null])), set: [] }
-      db.services.push(s); save(); return serviceView(s)
+      db.services.push(s); logEdit(s.id, `added a service on ${s.date}`); save(); return serviceView(s)
     }],
     ['PATCH', /^\/services\/([^/]+)$/, (m, b) => {
       leaderOnly(who()); const s = findService(m[1]); checkRev(s, b.rev, serviceView)
       for (const k of ['title', 'notes', 'date', 'time']) if (b[k] !== undefined) s[k] = b[k]
-      s.rev++; save(); return serviceView(s)
+      s.rev++; logEdit(s.id, 'changed the service details'); save(); return serviceView(s)
     }],
     ['PUT', /^\/services\/([^/]+)\/slots\/(.+)$/, (m, b) => {
       leaderOnly(who()); const s = findService(m[1]); const role = decodeURIComponent(m[2])
@@ -128,8 +133,8 @@ export function createMockApi() {
         const p = db.people.find(x => x.id === b.person_id) || fail(404, "That person isn't on the team list.")
         if (isAway(p.id, s.date)) fail(409, `${p.name} is away that day.`, { current: serviceView(s) })
         if (!p.roles.includes(role)) fail(400, `${p.name} doesn't play ${role}.`)
-        s.slots[role] = p.id
-      } else s.slots[role] = null
+        s.slots[role] = p.id; logEdit(s.id, `put ${p.name} on ${role}`)
+      } else { s.slots[role] = null; logEdit(s.id, `cleared ${role}`) }
       s.rev++; save(); return serviceView(s)
     }],
     ['PUT', /^\/me\/away\/(\d{4}-\d{2}-\d{2})$/, (m, b, q) => setAway(m[1], q, true)],
@@ -139,6 +144,14 @@ export function createMockApi() {
       leaderOnly(who()); if (!b.title) fail(400, 'Give the song a title.')
       const s = { id: nid('song'), title: b.title, artist: b.artist || '', key: b.key || '', bpm: b.bpm ? +b.bpm : null, chart: b.chart || '', video: b.video || '', notes: b.notes || '', last_used: null, rev: 1 }
       db.songs.push(s); save(); return { ...s }
+    }],
+    ['GET', /^\/editors$/, () => { leaderOnly(who()); return db.people.filter(p => p.title || p.id === 'p1').map(p => ({ id: p.id, name: p.name, title: p.title || 'worship leader' })) }],
+    ['POST', /^\/editors$/, (m, b) => {
+      leaderOnly(who()); const name = String(b.name || '').trim(), title = String(b.title || '').trim()
+      if (!name) fail(400, 'Please give your name.'); if (!TITLES.includes(title)) fail(400, 'Pick worship leader or pastor.')
+      let p = db.people.find(x => x.name.toLowerCase() === name.toLowerCase())
+      if (p) p.title = title; else { p = { id: nid('ed'), name, roles: [], token: 'tok-' + nid('t'), phone: '', is_leader: 0, title }; db.people.push(p) }
+      save(); return { id: p.id, name: p.name, title }
     }],
     ['PATCH', /^\/songs\/([^/]+)$/, (m, b) => {
       leaderOnly(who()); const s = db.songs.find(x => x.id === m[1]) || fail(404, "That song isn't in the list."); checkRev(s, b.rev)
@@ -151,7 +164,7 @@ export function createMockApi() {
       if (!Array.isArray(b.entries)) fail(400, 'Send the set list as a list.')
       s.set = b.entries.map(e => ({ song_id: e.song_id, key: e.key || '', lead_person_id: e.lead_person_id || null, note: e.note || '' }))
       for (const e of s.set) { const song = db.songs.find(x => x.id === e.song_id); if (song && (!song.last_used || song.last_used < s.date)) song.last_used = s.date }
-      s.rev++; save(); return serviceView(s)
+      s.rev++; logEdit(s.id, 'changed the set list'); save(); return serviceView(s)
     }],
     ['GET', /^\/channels$/, () => ({ rev: db.channels_rev, channels: db.channels.map(c => ({ ...c })) })],
     ['PUT', /^\/channels$/, (m, b) => {

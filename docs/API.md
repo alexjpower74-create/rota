@@ -5,6 +5,8 @@ Base: the Worker (`rota`). All JSON. Errors: `{ "error": "<plain sentence>" }`. 
 Every mutable row carries `rev` (integer). Writes send `rev`; a stale one → 409 `{ error: "Someone changed this just now. Here's the latest.", current: <row> }`.
 
 `GET /health` → `{ ok: true }`
+
+**Who is editing (2026-09-13).** Building the rota is done by worship leaders and pastors. `GET /editors` (leader link) → `[{ id, name, title: "worship leader" | "pastor" }]`; `POST /editors { name, title }` adds a name (or gives an existing person that title). The app sends `X-Editor: <person id>` on every write; the Worker stamps each change into `edits` and onto the service: `<service view>` carries `last_edit: { by, title, at } | null` and `edits: [{ what, by, title, at }]` (latest five). `GET /edits` (any link) → the latest 50 changes.
 `GET /me` (member) → `{ person: { id, name, roles }, next: <service view>, upcoming: [<service view> ×4], away: ["2026-09-21", …] }`
 `GET /public/next` (no token) → `<service view>` with names but no phones or tokens.
 `GET /services?from=YYYY-MM-DD&limit=8` → `[<service view>]`

@@ -3,7 +3,10 @@ export const BASE = '/index.html?mock=1&today=2026-09-12'
 export const ALEX = 'alex-demo', LEADER = 'lead-demo', RUTH = 'sample-ruth', NOAH = 'sample-noah', TOM = 'sample-tom'
 export const NEXT_DATE = 'Sunday 13 September'
 
-export async function open(page, route, { reset = false } = {}) {
+export const EDITOR = { id: 'p1', name: 'Alexander Power', title: 'worship leader' }
+export async function open(page, route, { reset = false, editor = EDITOR } = {}) {
+  // The leader page asks "worship leader or pastor?" once per phone; tests answer it up front unless they test that step.
+  await page.addInitScript((e) => { try { if (e) localStorage.setItem('rotaEditor', JSON.stringify(e)); else localStorage.removeItem('rotaEditor') } catch {} }, editor)
   await page.goto(`${BASE}${reset ? '&reset=1' : ''}#${route}`)
   await expect(page.locator('#app')).not.toContainText('Loading…')
 }

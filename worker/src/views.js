@@ -8,10 +8,11 @@ export async function serviceViews (db, services, { withPhones = false } = {}) {
   const dates = [...new Set(services.map(s => s.date))]
   const dmarks = dates.map(() => '?').join(',')
 
-  const [asg, set, away] = await Promise.all([
+  const [asg, set, away, edits] = await Promise.all([
     db.prepare(`SELECT a.service_id, a.role, a.person_id, p.name FROM assignments a JOIN people p ON p.id = a.person_id WHERE a.service_id IN (${marks})`).bind(...ids).all(),
     db.prepare(`SELECT e.*, s.title, s.artist, s.bpm, s.chart, s.video, p.name AS lead_name FROM set_entries e JOIN songs s ON s.id = e.song_id LEFT JOIN people p ON p.id = e.lead_person_id WHERE e.service_id IN (${marks}) ORDER BY e.position`).bind(...ids).all(),
-    db.prepare(`SELECT a.person_id, a.date, p.name FROM away a JOIN people p ON p.id = a.person_id WHERE a.date IN (${dmarks}) ORDER BY p.name`).bind(...dates).all()
+    db.prepare(`SELECT a.person_id, a.date, p.name FROM away a JOIN people p ON p.id = a.person_id WHERE a.date IN (${dmarks}) ORDER BY p.name`).bind(...dates).all(),
+    db.prepare(`SELECT service_id, what, by_name, by_title, at FROM edits WHERE service_id IN (${marks}) ORDER BY at DESC`).bind(...ids).all()
   ])
 
   return services.map(s => {
@@ -32,7 +33,9 @@ export async function serviceViews (db, services, { withPhones = false } = {}) {
       id: s.id, date: s.date, time: s.time, kind: s.kind, title: s.title, notes: s.notes, rev: s.rev,
       slots, set: setRows,
       away_names: awayRows.map(a => a.name),
-      away_ids: awayRows.map(a => a.person_id)
+      away_ids: awayRows.map(a => a.person_id),
+      last_edit: s.last_edit_by ? { by: s.last_edit_by, title: s.last_edit_title, at: s.last_edit_at } : null,
+      edits: edits.results.filter(e => e.service_id === s.id).slice(0, 5).map(e => ({ what: e.what, by: e.by_name, title: e.by_title, at: e.at }))
     }
   })
 }

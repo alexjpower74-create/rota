@@ -3,6 +3,8 @@
 export const MOCK = '/?mock=1'
 
 export async function discover (page) {
+  // The leader page asks who is building the rota; the QA journey answers it up front (the r2 suite covers that step).
+  await page.addInitScript(() => { try { localStorage.setItem('rotaEditor', JSON.stringify({ id: 'p1', name: 'Alexander Power', title: 'worship leader' })) } catch {} })
   await page.goto(MOCK + '#/')
   await page.waitForLoadState('networkidle')
   const hook = await page.evaluate(() => globalThis.rotaMock || null)

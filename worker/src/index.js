@@ -1,12 +1,46 @@
 // Rota Worker — implements docs/API.md. Plain sentences in every error; every write carries rev.
 import { ROLES, KINDS, HttpError, bad, notFound, json, CORS, id, token, now, today, isDate, isTime, prettyDate, readJson, requireRev } from './util.js'
-import { whoIs, needToken, needLeader, needLeaderOrSound } from './auth.js'
+import { whoIs, needToken, needLeader, needLeaderOrSound, editorOf } from './auth.js'
 import { serviceViews, serviceView, getService, upcoming, bumpRev, publicPerson } from './views.js'
 
 const routes = []
 const route = (method, pattern, handler) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '/?$'), handler })
 
 route('GET', '/health', () => json({ ok: true }))
+
+// ---------- who is editing ----------
+const TITLES = ['worship leader', 'pastor']
+async function logEdit (db, req, who, serviceId, what) {
+  const ed = await editorOf(req, db, who)
+  const at = now()
+  await db.prepare('INSERT INTO edits(id, service_id, what, by_id, by_name, by_title, at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(id(), serviceId, what, ed.id, ed.name, ed.title, at).run()
+  if (serviceId) await db.prepare('UPDATE services SET last_edit_by = ?, last_edit_title = ?, last_edit_at = ? WHERE id = ?').bind(ed.name, ed.title, at, serviceId).run()
+  return ed
+}
+route('GET', '/editors', async ({ db, who }) => {
+  needLeader(who)
+  const r = await db.prepare("SELECT id, name, title, is_leader FROM people WHERE title != '' OR is_leader = 1 ORDER BY name").all()
+  return json(r.results.map(p => ({ id: p.id, name: p.name, title: p.title || 'worship leader' })))
+})
+route('POST', '/editors', async ({ db, who, req }) => {
+  needLeader(who)
+  const b = await readJson(req)
+  const name = String(b.name || '').trim(), title = String(b.title || '').trim()
+  if (!name) throw bad('Please give your name.')
+  if (!TITLES.includes(title)) throw bad('Pick worship leader or pastor.')
+  const existing = await db.prepare('SELECT id FROM people WHERE lower(name) = lower(?)').bind(name).first()
+  let pid
+  if (existing) { pid = existing.id; await db.prepare('UPDATE people SET title = ? WHERE id = ?').bind(title, pid).run() }
+  else { pid = id(); await db.prepare('INSERT INTO people(id, name, roles, token, is_leader, phone, created, title) VALUES (?, ?, ?, ?, 0, ?, ?, ?)').bind(pid, name, '[]', token(), '', now(), title).run() }
+  await logEdit(db, { headers: { get: () => pid } }, who, null, `${name} joined as ${title}`)
+  return json({ id: pid, name, title }, 201)
+})
+route('GET', '/edits', async ({ db, who }) => {
+  needToken(who)
+  const r = await db.prepare('SELECT * FROM edits ORDER BY at DESC LIMIT 50').all()
+  return json(r.results)
+})
 
 // ---------- public ----------
 route('GET', '/public/next', async ({ db }) => {
@@ -89,6 +123,7 @@ route('POST', '/services', async ({ db, who, req }) => {
   const sid = id()
   await db.prepare('INSERT INTO services(id, date, time, kind, title, notes, rev) VALUES (?, ?, ?, ?, ?, ?, 1)')
     .bind(sid, b.date, b.time || '', b.kind, String(b.title || ''), String(b.notes || '')).run()
+  await logEdit(db, req, who, sid, `added a service on ${b.date}`)
   return json(await serviceView(db, sid), 201)
 })
 
@@ -108,6 +143,7 @@ route('PATCH', '/services/:id', async ({ db, who, req, params }) => {
     // Anyone away on the new date can no longer be on it.
     await db.prepare('DELETE FROM assignments WHERE service_id = ? AND person_id IN (SELECT person_id FROM away WHERE date = ?)').bind(s.id, next.date).run()
   }
+  await logEdit(db, req, who, s.id, 'changed the service details')
   return json(await serviceView(db, s.id))
 })
 
@@ -138,6 +174,7 @@ route('PUT', '/services/:id/slots/:role', async ({ db, who, req, params }) => {
       .bind(s.id, role, p.id).run()
   }
   await bumpRev(db, s.id)
+  await logEdit(db, req, who, s.id, b.person_id == null ? `cleared ${role}` : `put ${(await db.prepare('SELECT name FROM people WHERE id = ?').bind(b.person_id).first()).name} on ${role}`)
   return json(await serviceView(db, s.id))
 })
 
@@ -162,6 +199,7 @@ route('PUT', '/services/:id/set', async ({ db, who, req, params }) => {
   }
   stmts.push(db.prepare('UPDATE services SET rev = rev + 1 WHERE id = ?').bind(s.id))
   await db.batch(stmts)
+  await logEdit(db, req, who, s.id, 'changed the set list')
   return json(await serviceView(db, s.id))
 })
 
@@ -187,7 +225,7 @@ route('POST', '/songs', async ({ db, who, req }) => {
   const sid = id()
   await db.prepare('INSERT INTO songs(id, title, artist, key, bpm, chart, video, notes, last_used, rev) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "", 1)')
     .bind(sid, f.title, f.artist, f.key, f.bpm, f.chart, f.video, f.notes).run()
-  return json(await db.prepare('SELECT * FROM songs WHERE id = ?').bind(sid).first(), 201)
+  await logEdit(db, req, who, null, `added the song ${String(b.title || '').trim()}`); return json(await db.prepare('SELECT * FROM songs WHERE id = ?').bind(sid).first(), 201)
 })
 route('PATCH', '/songs/:id', async ({ db, who, req, params }) => {
   needLeader(who)
@@ -198,6 +236,7 @@ route('PATCH', '/songs/:id', async ({ db, who, req, params }) => {
   const f = songFields(b, song)
   await db.prepare('UPDATE songs SET title = ?, artist = ?, key = ?, bpm = ?, chart = ?, video = ?, notes = ?, rev = rev + 1 WHERE id = ?')
     .bind(f.title, f.artist, f.key, f.bpm, f.chart, f.video, f.notes, song.id).run()
+  await logEdit(db, req, who, null, `edited the song ${f.title}`)
   return json(await db.prepare('SELECT * FROM songs WHERE id = ?').bind(song.id).first())
 })
 route('DELETE', '/songs/:id', async ({ db, who, params }) => {
@@ -205,6 +244,7 @@ route('DELETE', '/songs/:id', async ({ db, who, params }) => {
   const song = await db.prepare('SELECT id FROM songs WHERE id = ?').bind(params.id).first()
   if (!song) throw notFound('That song')
   await db.prepare('DELETE FROM songs WHERE id = ?').bind(song.id).run()
+  await logEdit(db, req, who, null, 'removed a song')
   return json({ ok: true })
 })
 

@@ -24,6 +24,7 @@ export function createApi(base = pickBase()) {
     const headers = { 'Accept': 'application/json' }
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (token) headers['Authorization'] = `Bearer ${token}`
+    try { const ed = localStorage.getItem('rotaEditor'); if (ed) headers['X-Editor'] = JSON.parse(ed).id } catch {}
     let res
     try {
       res = await fetch(base + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
