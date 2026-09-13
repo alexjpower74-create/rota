@@ -1,0 +1,341 @@
+// GENERATED from data/spc-state-2026-09-13.json (PIN removed). Regenerate: node app/tests/gen-mock-data.mjs
+export const snapshot = {
+ "rev": 13,
+ "notice": "",
+ "team": [
+  {
+   "id": "p1",
+   "name": "Alexander Power",
+   "roles": [
+    "lg"
+   ],
+   "phone": "",
+   "email": ""
+  }
+ ],
+ "services": [
+  {
+   "id": "s1",
+   "date": "2026-08-23",
+   "time": "11:00",
+   "type": "am",
+   "title": "",
+   "assign": {
+    "lg": "p1"
+   },
+   "out": [],
+   "set": [
+    {
+     "id": "1g7jomm",
+     "songId": "g8",
+     "key": "C",
+     "leadId": "",
+     "note": ""
+    },
+    {
+     "id": "znwp6kr",
+     "songId": "g1",
+     "key": "B",
+     "leadId": "",
+     "note": ""
+    }
+   ],
+   "notes": ""
+  },
+  {
+   "id": "s2",
+   "date": "2026-08-27",
+   "time": "19:00",
+   "type": "prac",
+   "title": "Practice for Aug 30",
+   "assign": {},
+   "out": [],
+   "set": [],
+   "notes": ""
+  },
+  {
+   "id": "s3",
+   "date": "2026-08-30",
+   "time": "11:00",
+   "type": "am",
+   "title": "",
+   "assign": {},
+   "out": [],
+   "set": [],
+   "notes": ""
+  },
+  {
+   "id": "s4",
+   "date": "2026-09-06",
+   "time": "11:00",
+   "type": "am",
+   "title": "",
+   "assign": {
+    "lg": "p1"
+   },
+   "out": [],
+   "set": [],
+   "notes": ""
+  },
+  {
+   "id": "p2nh9wa",
+   "assign": {},
+   "out": [],
+   "set": [],
+   "type": "am",
+   "date": "2026-09-13",
+   "time": "11:00",
+   "title": "",
+   "notes": ""
+  }
+ ],
+ "songs": [
+  {
+   "id": "g1",
+   "title": "Goodness of God",
+   "artist": "Bethel Music",
+   "key": "B",
+   "bpm": 63,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": "2026-08-23"
+  },
+  {
+   "id": "g2",
+   "title": "What A Beautiful Name",
+   "artist": "Hillsong Worship",
+   "key": "D",
+   "bpm": 68,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g3",
+   "title": "Way Maker",
+   "artist": "Sinach",
+   "key": "E",
+   "bpm": 132,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g4",
+   "title": "Great Are You Lord",
+   "artist": "All Sons & Daughters",
+   "key": "G",
+   "bpm": 72,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g5",
+   "title": "Build My Life",
+   "artist": "Pat Barrett",
+   "key": "G",
+   "bpm": 68,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g6",
+   "title": "King of Kings",
+   "artist": "Hillsong Worship",
+   "key": "D",
+   "bpm": 71,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g7",
+   "title": "Gratitude",
+   "artist": "Brandon Lake",
+   "key": "G",
+   "bpm": 68,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g8",
+   "title": "Holy Forever",
+   "artist": "Chris Tomlin",
+   "key": "C",
+   "bpm": 74,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": "2026-08-23"
+  },
+  {
+   "id": "g9",
+   "title": "Firm Foundation (He Won’t)",
+   "artist": "Cody Carnes",
+   "key": "A",
+   "bpm": 80,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g10",
+   "title": "Praise",
+   "artist": "Elevation Worship",
+   "key": "B",
+   "bpm": 72,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g11",
+   "title": "Living Hope",
+   "artist": "Phil Wickham",
+   "key": "D",
+   "bpm": 66,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  },
+  {
+   "id": "g12",
+   "title": "How Great Thou Art",
+   "artist": "Hymn",
+   "key": "Bb",
+   "bpm": 76,
+   "chart": "",
+   "video": "",
+   "notes": "",
+   "last": ""
+  }
+ ],
+ "channels": [
+  {
+   "id": "c1",
+   "ch": 1,
+   "src": "Kick",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c2",
+   "ch": 2,
+   "src": "Snare",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c3",
+   "ch": 3,
+   "src": "Hi-Hat",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c4",
+   "ch": 4,
+   "src": "Overhead L",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c5",
+   "ch": 5,
+   "src": "Overhead R",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c6",
+   "ch": 6,
+   "src": "Bass",
+   "inp": "DI",
+   "note": ""
+  },
+  {
+   "id": "c7",
+   "ch": 7,
+   "src": "Lead Guitar",
+   "inp": "DI",
+   "note": ""
+  },
+  {
+   "id": "c8",
+   "ch": 8,
+   "src": "Acoustic",
+   "inp": "DI",
+   "note": ""
+  },
+  {
+   "id": "c9",
+   "ch": 9,
+   "src": "Keys L",
+   "inp": "DI",
+   "note": ""
+  },
+  {
+   "id": "c10",
+   "ch": 10,
+   "src": "Keys R",
+   "inp": "DI",
+   "note": ""
+  },
+  {
+   "id": "c11",
+   "ch": 11,
+   "src": "Worship Lead",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c12",
+   "ch": 12,
+   "src": "Vocals 2",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c13",
+   "ch": 13,
+   "src": "Vocals 3",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c14",
+   "ch": 14,
+   "src": "Pulpit",
+   "inp": "Mic",
+   "note": ""
+  },
+  {
+   "id": "c15",
+   "ch": 15,
+   "src": "Playback L",
+   "inp": "Line",
+   "note": ""
+  },
+  {
+   "id": "c16",
+   "ch": 16,
+   "src": "Playback R",
+   "inp": "Line",
+   "note": ""
+  }
+ ],
+ "issues": []
+}

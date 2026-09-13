@@ -1,0 +1,11 @@
+  ✘  6 [chromium-phone] › app/tests/rota.spec.js:5:7 › Rota against the mock › member marks away and sees it, and it sticks after a reload (5.1s)
+  ✘  2 [chromium-phone] › app/tests/rota.spec.js:22:7 › Rota against the mock › leader opens a slot: the away person is not offered, someone else fills it, member and wall show the name (5.2s)
+  ✘  1 [chromium-phone] › app/tests/rota.spec.js:57:7 › Rota against the mock › assigning someone who is away is refused with a plain sentence (5.4s)
+    app/tests/shots/failures/rota-Rota-against-the-mock-ce537-nd-it-sticks-after-a-reload-chromium-phone/test-failed-1.png
+    Error: expect(locator).toBeVisible() failed
+    app/tests/shots/failures/rota-Rota-against-the-mock-5f670-mber-and-wall-show-the-name-chromium-phone/test-failed-1.png
+    Error: expect(locator).toBeVisible() failed
+    app/tests/shots/failures/rota-Rota-against-the-mock-2a41e-fused-with-a-plain-sentence-chromium-phone/test-failed-2.png
+    app/tests/shots/failures/rota-Rota-against-the-mock-2a41e-fused-with-a-plain-sentence-chromium-phone/test-failed-1.png
+  3 failed
+  6 passed (5.7s)
