@@ -14,6 +14,7 @@ export function pickBase() {
   if (q) { try { localStorage.setItem('rotaApiBase', q) } catch {} ; return q }
   try { const s = localStorage.getItem('rotaApiBase'); if (s) return s } catch {}
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return 'http://localhost:6002'
+  if (/\.workers\.dev$|apcosoftwaretools\.ca$/.test(location.hostname)) return 'https://rota.alexjpower74.workers.dev' // main fills the deployed Worker
   return '/api'
 }
 

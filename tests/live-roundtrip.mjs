@@ -89,13 +89,13 @@ try {
   }
 
   // Next service on or after today
-  const services = (await call('GET', `/services?from=${today()}&limit=1`)).json
+  const services = (await call('GET', `/services?from=${today()}&limit=1`, { token: LEADER })).json
   const svc = Array.isArray(services) ? services[0] : null
   if (!svc) throw new Error('no service on or after today — add one before running the round-trip')
   const before = svc.slots?.[role] ?? null
   const rev0 = svc.rev
   cleanup.push(async () => {
-    const cur = (await call('GET', `/services?from=${svc.date}&limit=1`)).json?.[0]
+    const cur = (await call('GET', `/services?from=${svc.date}&limit=1`, { token: LEADER })).json?.[0]
     if (cur) await call('PUT', `/services/${cur.id}/slots/${encodeURIComponent(role)}`, { token: LEADER, body: { rev: cur.rev, person_id: before?.person_id ?? null } })
   })
   console.log(C.dim(`  using service ${svc.date} ${svc.time || ''}, role "${role}", away: ${member.name}, fill: ${other.name}`))
@@ -107,13 +107,13 @@ try {
     assert: () => away.status === 200 && Array.isArray(away.json?.away) && away.json.away.includes(svc.date),
     breaks: () => ({ status: 200, json: { away: [] } }).json.away.includes(svc.date)
   })
-  const cur1 = (await call('GET', `/services?from=${svc.date}&limit=1`)).json?.[0]
+  const cur1 = (await call('GET', `/services?from=${svc.date}&limit=1`, { token: LEADER })).json?.[0]
   const refused = await call('PUT', `/services/${svc.id}/slots/${encodeURIComponent(role)}`, { token: LEADER, body: { rev: cur1.rev, person_id: member.id } })
   await check('leader assigning the away person gets 409 and a plain sentence with their name', {
     assert: () => refused.status === 409 && typeof refused.json?.error === 'string' && refused.json.error.includes(member.name) && /away/i.test(refused.json.error),
     breaks: () => { const r = { status: 200, json: refused.json }; return r.status === 409 }
   })
-  const cur2 = (await call('GET', `/services?from=${svc.date}&limit=1`)).json?.[0]
+  const cur2 = (await call('GET', `/services?from=${svc.date}&limit=1`, { token: LEADER })).json?.[0]
   await check('the away person is not in the slot afterwards', {
     assert: () => cur2.slots?.[role]?.person_id !== member.id,
     breaks: () => ({ slots: { [role]: { person_id: member.id } } }).slots[role].person_id !== member.id

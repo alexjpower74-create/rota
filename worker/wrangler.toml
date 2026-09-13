@@ -5,5 +5,5 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "rota"
-database_id = "TODO-main-fills"
+database_id = "9eff678d-8078-4b2e-a8c2-d82745daf832"
 migrations_dir = "migrations"

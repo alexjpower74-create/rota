@@ -110,7 +110,7 @@ for (const s of snap.services) {
 
 // ---------- 4. channels ----------
 {
-  const r = (await call('GET', '/channels', { token: null })).json;
+  const r = (await call('GET', '/channels', { token: LEADER })).json; // channels need a signed-in token on the real Worker
   const list = Array.isArray(r) ? r : Array.isArray(r?.channels) ? r.channels : [];
   const want = snap.channels.map(c => [c.ch, c.src, c.inp]);
   const have = list.map(c => [c.ch, c.src, c.inp]);
