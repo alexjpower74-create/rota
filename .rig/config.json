@@ -1,0 +1,10 @@
+{
+  "plan": "PLAN.md",
+  "branchPrefix": "rig/",
+  "worktreeDir": ".worktrees",
+  "portBase": 6000,
+  "qaPort": 6009,
+  "launch": "claude --model claude-fable-5-1 --effort low",
+  "terminal": "auto",
+  "devCommand": null
+}

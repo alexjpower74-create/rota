@@ -1,0 +1,7 @@
+node_modules/
+.wrangler/
+.worktrees/
+test-results/
+*/SECRETS.txt
+.dev.vars
+data/cache/
