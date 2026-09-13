@@ -36,7 +36,8 @@ function toast(msg, kind = '') {
 function saySaved(msg = 'Saved') { toast(msg, 'good') }
 function sayError(e) { toast(e instanceof ApiError ? e.message : 'Something went wrong. Try again.', 'bad'); if (!(e instanceof ApiError)) console.error(e) }
 function busy(btn, on) { if (!btn) return; btn.disabled = on; if (on) { btn.dataset.label = btn.textContent; btn.textContent = 'Saving…' } else if (btn.dataset.label) { btn.textContent = btn.dataset.label } }
-function remember(token) { try { localStorage.setItem('rotaToken', token) } catch {} }
+function remember(token, kind) { try { localStorage.setItem('rotaToken', token); if (kind) localStorage.setItem('rotaKind', kind) } catch {} }
+function rememberedKind() { try { return localStorage.getItem('rotaKind') } catch { return null } }
 function remembered() { try { return localStorage.getItem('rotaToken') } catch { return null } }
 function hashFor(route) { return '#' + route }
 
@@ -70,7 +71,7 @@ function nextCard(s, { meId, kicker = 'Next service' } = {}) {
 
 // ---------- member ----------
 async function renderMember(token) {
-  api.setToken(token); remember(token)
+  api.setToken(token); remember(token, 'me')
   let data
   try { data = await api.get('/me') } catch (e) { return renderBadLink(e) }
   const me = data.person
@@ -137,7 +138,7 @@ function renderBadLink(e) {
 
 // ---------- leader ----------
 async function renderLeader(token) {
-  api.setToken(token); remember(token)
+  api.setToken(token); remember(token, 'lead')
   let services, people, songs
   try { [services, people, songs] = await Promise.all([api.get('/services?limit=4'), api.get('/people'), api.get('/songs')]) } catch (e) { return renderBadLink(e) }
   $app.classList.add('wide')
@@ -344,8 +345,12 @@ async function route() {
   document.querySelector('.top').classList.remove('hidden')
   $app.classList.remove('wide')
   $app.replaceChildren(h('p', { class: 'muted' }, 'Loading…'))
+  // The top bar always offers the way back to your own page: the leader's "Build the rota", a member's "My page".
+  const tok = remembered(), kind = rememberedKind()
   const links = [['Next service', '#/'], ['Sound desk', '#/sound'], ['Notice board', '#/wall']]
-  $nav.replaceChildren(...links.map(([t, href]) => h('a', { href, class: location.hash === href || (href === '#/' && !screen) ? 'on' : '' }, t)))
+  if (tok && kind === 'lead') links.unshift(['Build the rota', '#/lead/' + tok])
+  else if (tok && kind === 'me') links.unshift(['My page', '#/me/' + tok])
+  $nav.replaceChildren(...links.map(([t, href]) => h('a', { href, class: location.hash === href || (href === '#/' && !screen) || (href.startsWith('#/lead/') && screen === 'lead') || (href.startsWith('#/me/') && screen === 'me') ? 'on' : '' }, t)))
   try {
     if (screen === 'me' && arg) await renderMember(arg)
     else if (screen === 'lead' && arg) await renderLeader(arg)
