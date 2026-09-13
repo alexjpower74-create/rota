@@ -1,0 +1,18 @@
+{
+  "name": "rota",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rota — who's on this Sunday. Static app in app/, Worker in worker/.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium-phone --project=chromium-desktop",
+    "test:webkit": "playwright test --project=webkit-phone --project=webkit-desktop",
+    "test:qa": "playwright test app/tests/qa",
+    "test:live": "node tests/live-roundtrip.mjs",
+    "serve:qa": "node app/tests/qa/serve.mjs 6009"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}
