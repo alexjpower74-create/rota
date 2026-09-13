@@ -346,6 +346,7 @@ async function route() {
   $app.classList.remove('wide')
   $app.replaceChildren(h('p', { class: 'muted' }, 'Loading…'))
   // The top bar always offers the way back to your own page: the leader's "Build the rota", a member's "My page".
+  if (screen === 'lead' && arg) remember(arg, 'lead'); else if (screen === 'me' && arg) remember(arg, 'me')
   const tok = remembered(), kind = rememberedKind()
   const links = [['Next service', '#/'], ['Sound desk', '#/sound'], ['Notice board', '#/wall']]
   if (tok && kind === 'lead') links.unshift(['Build the rota', '#/lead/' + tok])
