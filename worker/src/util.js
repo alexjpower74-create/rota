@@ -1,4 +1,4 @@
-export const ROLES = ['lead guitar', 'rhythm guitar', 'bass', 'drums', 'keys', 'vocals 1', 'vocals 2', 'vocals 3', 'sound', 'projection']
+export const ROLES = ['worship leader', 'lead guitar', 'rhythm guitar', 'acoustic guitar 1', 'acoustic guitar 2', 'acoustic guitar 3', 'bass', 'drums', 'keys', 'piano', 'vocals 1', 'vocals 2', 'vocals 3', 'sound', 'projection']
 export const KINDS = ['am', 'pm', 'practice', 'special']
 
 export class HttpError extends Error {

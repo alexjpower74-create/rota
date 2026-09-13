@@ -3,7 +3,7 @@ import { createApi, ApiError } from './api.js'
 
 const params = new URLSearchParams(location.search)
 const MOCK = params.get('mock') === '1'
-const ROLES = ['lead guitar', 'rhythm guitar', 'bass', 'drums', 'keys', 'vocals 1', 'vocals 2', 'vocals 3', 'sound', 'projection']
+const ROLES = ['worship leader', 'lead guitar', 'rhythm guitar', 'acoustic guitar 1', 'acoustic guitar 2', 'acoustic guitar 3', 'bass', 'drums', 'keys', 'piano', 'vocals 1', 'vocals 2', 'vocals 3', 'sound', 'projection']
 const KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'Cm', 'C#m', 'Dm', 'Ebm', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'Bbm', 'Bm']
 const KIND = { am: 'Morning service', pm: 'Evening service', practice: 'Practice', special: 'Special service' }
 

@@ -5,7 +5,7 @@
 import { ApiError } from './api.js'
 import { snapshot } from './mock-data.js'
 
-export const ROLES = ['lead guitar', 'rhythm guitar', 'bass', 'drums', 'keys', 'vocals 1', 'vocals 2', 'vocals 3', 'sound', 'projection']
+export const ROLES = ['worship leader', 'lead guitar', 'rhythm guitar', 'acoustic guitar 1', 'acoustic guitar 2', 'acoustic guitar 3', 'bass', 'drums', 'keys', 'piano', 'vocals 1', 'vocals 2', 'vocals 3', 'sound', 'projection']
 const ROLE_CODES = { lg: 'lead guitar', rg: 'rhythm guitar', bs: 'bass', ba: 'bass', dr: 'drums', ky: 'keys', v1: 'vocals 1', v2: 'vocals 2', v3: 'vocals 3', sd: 'sound', pj: 'projection' }
 const KIND = { am: 'am', pm: 'pm', prac: 'practice', practice: 'practice', special: 'special' }
 

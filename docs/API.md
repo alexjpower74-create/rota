@@ -20,4 +20,4 @@ Every mutable row carries `rev` (integer). Writes send `rev`; a stale one → 40
 
 `<service view>` = `{ id, date, time, kind, title, notes, rev, slots: { "lead guitar": { person_id, name } | null, … }, set: [{ position, song: { id, title, artist }, key, lead_name, note }], away_names: [...] }`.
 
-Roles: `lead guitar, rhythm guitar, bass, drums, keys, vocals 1, vocals 2, vocals 3, sound, projection`.
+Roles: `worship leader, lead guitar, rhythm guitar, acoustic guitar 1, acoustic guitar 2, acoustic guitar 3, bass, drums, keys, piano, vocals 1, vocals 2, vocals 3, sound, projection` (added worship leader, piano and the three acoustic slots 2026-09-13 at Alexander's request).
