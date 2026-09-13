@@ -1,0 +1,12 @@
+{
+  "name": "rota-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 6002",
+    "migrate:local": "wrangler d1 migrations apply rota --local",
+    "seed:sql": "node import.mjs ../data/spc-state-2026-09-13.json > seed.sql",
+    "seed:local": "npm run migrate:local && npm run seed:sql && wrangler d1 execute rota --local --file seed.sql",
+    "test": "node tests/run.mjs"
+  }
+}

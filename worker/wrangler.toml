@@ -1,0 +1,9 @@
+name = "rota"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rota"
+database_id = "TODO-main-fills"
+migrations_dir = "migrations"
