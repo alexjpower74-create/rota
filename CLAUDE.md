@@ -1,2 +1,1 @@
-# Rota
-Read PLAN.md first; it is the contract. docs/API.md is the contract between app and worker. You own only your slice's files. Verify, commit only your paths, report in docs/build-report-<id>.md. No visible Chrome; screenshot with pwshot. A check that cannot fail measured nothing: make each check red once. Plain English on every screen; the users are a church worship team on their phones. Real names only where the snapshot has them; SAMPLE people otherwise. Every write is conflict-safe (rev); a person marked away can never be assigned.
+AGENTS.md
