@@ -376,7 +376,7 @@ async function renderSound(token) {
   const inputsFor = (c, i) => canEdit
     ? [h('td', {}, h('input', { type: 'text', value: c.src, placeholder: 'e.g. Acoustic 2', 'aria-label': `Channel ${c.ch} source`, oninput: (ev) => { c.src = ev.target.value }, onkeydown: onEnter(i) })),
        h('td', {}, h('input', { type: 'text', class: 'w-inp', list: 'input-picks', value: c.inp, placeholder: 'Mic / DI', 'aria-label': `Channel ${c.ch} input`, oninput: (ev) => { c.inp = ev.target.value }, onkeydown: onEnter(i) })),
-       h('td', {}, h('input', { type: 'text', value: c.note, 'aria-label': `Channel ${c.ch} note`, oninput: (ev) => { c.note = ev.target.value }, onkeydown: onEnter(i) })),
+       h('td', {}, h('input', { type: 'text', value: c.note, placeholder: 'Note', 'aria-label': `Channel ${c.ch} note`, oninput: (ev) => { c.note = ev.target.value }, onkeydown: onEnter(i) })),
        h('td', {}, h('button', { class: 'btn small danger', 'aria-label': `Remove channel ${c.ch}`, onclick: () => { rows.splice(i, 1); renumber(); renderTable() } }, 'Remove'))]
     : [h('td', {}, c.src), h('td', { class: 'muted' }, c.inp), h('td', { class: 'muted' }, c.note), null]
   const picks = h('datalist', { id: 'input-picks' }, INPUT_PICKS.map(v => h('option', { value: v })))

@@ -127,3 +127,20 @@ table.channels .w-inp { width: 5.5em; }
   .app { padding: 0; }
   body { font-size: 14pt; }
 }
+
+/* Phones: five columns cannot fit in 390px, so each channel becomes two lines.
+   Line 1: number · source · remove.  Line 2: input · note.  Every box stays ≥44px tall and full width. */
+@media (max-width: 600px) {
+  table.channels, table.channels tbody { display: block; }
+  table.channels thead { display: none; }
+  table.channels tr { display: grid; grid-template-columns: 2.2em 1fr 1fr; gap: 6px 8px; padding: 10px 0; border-top: 1px solid var(--rule); align-items: center; }
+  table.channels td { display: block; padding: 0; border: 0; width: auto; }
+  table.channels td.n { grid-column: 1; grid-row: 1; width: auto; text-align: right; }
+  table.channels td:nth-child(2) { grid-column: 2 / span 2; grid-row: 1; }
+  table.channels tr:has(td:nth-child(5)) td:nth-child(2) { grid-column: 2; }
+  table.channels td:nth-child(3) { grid-column: 2; grid-row: 2; }
+  table.channels td:nth-child(4) { grid-column: 3; grid-row: 2; }
+  table.channels td:nth-child(5) { grid-column: 3; grid-row: 1; justify-self: end; }
+  table.channels td:nth-child(5) .btn { min-height: 44px; }
+  table.channels input, table.channels .w-inp { width: 100%; box-sizing: border-box; }
+}
